@@ -1,0 +1,9 @@
+# Hồ sơ phát triển: mô hình nhỏ hơn, nhật ký dày hơn, không cần GPU mạnh.
+logging:
+  level:
+    vn.utc.tracuu: DEBUG
+tracuu:
+  llm:
+    model: ${TRACUU_LLM_MODEL:qwen2.5:3b-instruct-q4_K_M}
+  ingestion:
+    thread-pool-size: 1

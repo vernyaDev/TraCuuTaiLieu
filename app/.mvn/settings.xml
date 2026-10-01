@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Thiết lập Maven của DỰ ÁN. Vì sao cần: settings.xml toàn cục trên một số máy dựng
+  gương mọi kho (mirrorOf = *) về một Nexus nội bộ; máy nào không ở trong mạng đó thì
+  không giải được artifact nào. Tệp này bỏ qua gương ấy và đi thẳng Maven Central.
+
+  Tệp này KHÔNG chứa địa chỉ hạ tầng nội bộ, và cố ý như vậy.
+
+  Máy dựng nằm sau proxy doanh nghiệp: chép tệp này thành .mvn/settings-local.xml, thêm khối
+  <proxies> vào đó, rồi chạy `mvn -s .mvn/settings-local.xml ...` cho những lần cần TẢI mới.
+  Tệp settings-local.xml đã nằm trong .gitignore. Tham số -s trên dòng lệnh thắng giá trị ở
+  .mvn/maven.config, nên không cần sửa gì thêm.
+
+  Không dùng MAVEN_OPTS để truyền proxy: tầng tải phụ thuộc của Maven đọc cấu hình proxy từ
+  tệp thiết lập chứ không đọc thuộc tính hệ thống của máy ảo, nên cách ấy chỉ có VẺ hoạt động
+  khi mọi thứ đã nằm sẵn trong kho cục bộ.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+
+
+  <profiles>
+    <profile>
+      <id>central-direct</id>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>central-direct</activeProfile>
+  </activeProfiles>
+
+</settings>

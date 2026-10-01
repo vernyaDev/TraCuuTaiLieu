@@ -1,0 +1,108 @@
+# Bốn dịch vụ theo docs/_shared/architecture.md Mục 1.
+# Giao diện KHÔNG có tiến trình riêng — Vite dựng tệp tĩnh lúc dựng ảnh, app phục vụ chúng.
+services:
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: tracuu-db
+    environment:
+      POSTGRES_DB: tracuu
+      POSTGRES_USER: tracuu
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tracuu_dev}
+      # tiếng Việt: so sánh chuỗi không phân biệt hoa thường theo locale
+      LANG: C.UTF-8
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracuu -d tracuu"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    shm_size: 256mb
+
+  cache:
+    image: redis:7-alpine
+    container_name: tracuu-cache
+    command: >
+      redis-server
+      --save 60 1
+      --appendonly no
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  llm:
+    image: ollama/ollama:latest
+    container_name: tracuu-llm
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - llm-models:/root/.ollama
+    # Chỉ dịch vụ này cần GPU. Máy không có GPU vẫn chạy được, chỉ chậm.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Tên ảnh phải khai tường minh. Không khai thì Compose tự đặt theo tên thư mục dự án
+    # (`tracuutailieu-app:latest`), còn lệnh dựng tay trong hướng dẫn gắn thẻ `tracuu-app:0.1.0`
+    # — hai đường sinh ra HAI ảnh khác nhau, và `up -d` vẫn chạy ảnh cũ sau khi đã dựng lại.
+    # Đây là loại sai tệ nhất vì mọi thứ đều báo thành công: dựng xong, container khoẻ, chỉ có
+    # mã chạy là mã cũ.
+    image: tracuu-app:0.1.0
+    container_name: tracuu-app
+    depends_on:
+      db:      { condition: service_healthy }
+      cache:   { condition: service_healthy }
+      llm:     { condition: service_started }
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/tracuu
+      SPRING_DATASOURCE_USERNAME: tracuu
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-tracuu_dev}
+      SPRING_DATA_REDIS_HOST: cache
+      TRACUU_LLM_BASEURL: http://llm:11434
+      # Tên mô hình phải khai được từ ngoài. Phép kiểm khởi động số 3 CHẶN nếu máy chủ mô hình
+      # không có đúng mô hình đang cấu hình — đó là hành vi đúng, nhưng nó biến một giá trị
+      # mặc định không khớp thành một lần "không khởi động được" khó hiểu.
+      TRACUU_LLM_MODEL: ${TRACUU_LLM_MODEL:-qwen2.5:3b-instruct-q4_K_M}
+      # Mật khẩu quản trị lần đầu. Bỏ trống thì hệ thống sinh ngẫu nhiên và in ra nhật ký
+      # ĐÚNG MỘT LẦN — tiện cho nơi cài thật, bất tiện cho máy phát triển.
+      TRACUU_ADMIN_PASSWORD: ${TRACUU_ADMIN_PASSWORD:-}
+      TRACUU_STORAGE_ROOT: /var/tracuu/documents
+      TRACUU_EMBEDDING_MODELPATH: /var/tracuu/models
+      JAVA_OPTS: "-Xmx3g"
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - doc-storage:/var/tracuu/documents
+      - ./models:/var/tracuu/models:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  db-data:
+  llm-models:
+  doc-storage:

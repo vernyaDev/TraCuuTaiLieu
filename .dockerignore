@@ -1,0 +1,34 @@
+# Ngữ cảnh dựng chỉ nên chứa MÃ NGUỒN. Thiếu tệp này, Docker gửi cả jar 196 MB, node_modules
+# và toàn bộ lịch sử git sang daemon trước khi chạy dòng lệnh đầu tiên — chậm, và tệ hơn là
+# làm mọi tầng cache vỡ mỗi khi một tệp sinh ra thay đổi.
+.git
+.gitignore
+
+# Kết quả dựng — ảnh tự dựng lại từ nguồn
+app/target/
+web/node_modules/
+web/dist/
+app/src/main/resources/static/
+
+# Dữ liệu chạy và mô hình, không thuộc ảnh
+var/
+models/
+tools/
+
+# Hồ sơ phân tích và bộ khung BA: không dính gì tới ảnh chạy
+docs/
+wiki/
+legacy/
+.claude/
+_templates/
+_scripts/
+*.md
+
+# Cấu hình cục bộ của máy dựng
+.env
+app/.mvn/settings-local.xml
+
+# Công cụ
+.idea/
+.vscode/
+*.iml

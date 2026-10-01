@@ -1,0 +1,195 @@
+# Mọi ngưỡng ở đây thoả NFR-system-047: sửa tệp rồi khởi động lại, không dịch lại mã.
+# NFR-system-046 đòi kết quả đo mang theo cấu hình — vì vậy KHÔNG có bảng cấu hình trong
+# cơ sở dữ liệu (mô hình dữ liệu Mục 11): chụp lại tệp này là chụp đủ điều kiện thí nghiệm.
+
+spring:
+  application:
+    name: tracuu
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tracuu}
+    username: ${SPRING_DATASOURCE_USERNAME:tracuu}
+    password: ${SPRING_DATASOURCE_PASSWORD:tracuu_dev}
+    hikari:
+      maximum-pool-size: 16
+      minimum-idle: 4
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate          # lược đồ do Liquibase dựng, Hibernate chỉ kiểm
+    properties:
+      hibernate:
+        jdbc.batch_size: 50
+        order_inserts: true
+  liquibase:
+    change-log: classpath:db/changelog/master.xml
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      timeout: 2s
+  session:
+    store-type: redis
+    timeout: ${TRACUU_SESSION_TIMEOUT:8h}
+  servlet:
+    multipart:
+      max-file-size: 50MB          # NFR-system-013
+      max-request-size: 600MB      # một đợt nạp nhiều tệp
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+  error:
+    include-stacktrace: never      # NFR-system-031: không dấu vết kỹ thuật lọt ra ngoài
+    include-message: never
+  compression:
+    enabled: true
+    mime-types: text/html,text/css,application/javascript,application/json
+  shutdown: graceful
+
+management:
+  endpoints.web.exposure.include: health,info,metrics
+  endpoint.health.probes.enabled: true
+
+logging:
+  level:
+    root: INFO
+    vn.utc.tracuu: ${TRACUU_LOG_LEVEL:INFO}
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{turnId:-}] %logger{36} - %msg%n"
+
+# ───────────────────────────────────────────────────────────────────────────────
+tracuu:
+
+  storage:
+    root: ${TRACUU_STORAGE_ROOT:./var/documents}
+    max-file-size-mb: 50           # NFR-system-013
+    accepted-extensions: [docx, doc, pdf, xlsx, txt, md]
+
+  security:
+    bcrypt-strength: 12
+    # LỆCH ĐẶC TẢ CÓ CHỦ ĐÍCH, ghi ra để không ai "sửa" nhầm chiều: NFR-system-026 khai khoá
+    # sau 10 lần sai, ở đây là 5. Giữ 5 vì nó CHẶT hơn, và nới ra cho khớp một con số trong tài
+    # liệu là làm yếu đi một lớp chống dò mật khẩu để đổi lấy sự gọn gàng trên giấy. Việc phải
+    # làm là sửa con số trong nfr.md qua đường thay đổi có kiểm soát — xem KE-HOACH-HOAN-THIEN.md
+    # Mục 4.1.
+    max-failed-logins: 5
+    lockout-minutes: 15
+    # Mức mật là SỐ THỨ TỰ, không phải chuỗi liệt kê (mô hình dữ liệu Mục 2).
+    clearance-labels:
+      1: "Công khai"
+      2: "Nội bộ"
+      3: "Mật"
+
+  embedding:
+    model-path: ${TRACUU_EMBEDDING_MODELPATH:./models}
+    model-file: model.onnx
+    tokenizer-file: tokenizer.json
+    dimension: 768
+    max-sequence-length: 256
+    batch-size: 16
+    # Sinh biểu diễn chạy trên CPU trong app — GPU dành cho llm (kiến trúc Mục 1).
+    threads: 4
+
+  llm:
+    base-url: ${TRACUU_LLM_BASEURL:http://localhost:11434}
+    # Mặc định là mô hình ĐÃ ĐO và đạt phép kiểm số 4 trên phần cứng tham chiếu.
+    #
+    # Đo ngày 30/09 trên RTX 3060 Laptop 6 GB, ngữ cảnh 3072 token:
+    #   qwen2.5:3b  → 100% trên GPU · chữ đầu 5 câu đồng thời 3,8 s  (ngưỡng 15 s)
+    #   qwen2.5:7b  →  84% trên GPU · chữ đầu 5 câu đồng thời 12,0 s (ngưỡng 15 s)
+    # Bản 7b vẫn đạt mọi ngưỡng nhưng chỉ còn 20% dư địa, và nó KHÔNG qua được sàn
+    # min-gpu-ratio mặc định. Dùng 7b trên GPU lớn hơn, hoặc hạ sàn một cách có ý thức.
+    model: ${TRACUU_LLM_MODEL:qwen2.5:3b-instruct-q4_K_M}
+    connect-timeout: 10s
+    read-timeout: 180s
+    # Sàn tỉ lệ mô hình nằm trên GPU cho phép kiểm khởi động số 4.
+    #
+    # Đặt 1.0 (đòi nằm TRỌN trên GPU) vì đó là điều kiện mà mọi ngưỡng độ trễ được đo trên đó.
+    # Đo ngày 30/09 trên RTX 3060 Laptop 6 GB: qwen2.5:3b nằm 100% trên GPU, chữ đầu ở 5 câu
+    # đồng thời là 3,8 giây; qwen2.5:7b chỉ nằm 84%, và cùng phép đo đó lên 12,0 giây — tức
+    # 80% ngân sách của ngưỡng 15 giây. Hạ sàn này là chấp nhận cái giá đó một cách có ý thức.
+    min-gpu-ratio: 1.0
+    # NFR-system-044: yếu tố ngẫu nhiên cố định được và ghi cùng kết quả đo.
+    temperature: 0.1
+    top-p: 0.9
+    seed: 42
+    num-predict: 1024
+
+  segmentation:
+    # Tách từ tiếng Việt chạy trong máy ảo Java. ASM-project chưa đóng: bản mặc định
+    # là từ điển khớp dài nhất, không phụ thuộc thư viện gốc nên luôn chạy được.
+    strategy: longest-match        # longest-match | whitespace
+    dictionary: classpath:vi/vi-words.txt
+
+  chunking:
+    default-strategy: structural
+    strategies:
+      fixed:      { max-tokens: 512, overlap-tokens: 64 }
+      structural: { max-tokens: 512, overlap-tokens: 64, min-tokens: 80 }
+      semantic:   { max-tokens: 512, overlap-tokens: 32, breakpoint-percentile: 90 }
+
+  retrieval:
+    # NFR-system-047 gọi đích danh hai tham số dưới đây.
+    top-k: 8
+    candidate-k: 50                # lấy rộng rồi hợp nhất thứ hạng, mới cắt còn top-k
+    mode: hybrid                   # hybrid | vector | bm25  (NFR-system-045)
+    rrf-k: 60
+    bm25: { k1: 1.2, b: 0.75 }
+    # Mô hình dữ liệu Mục 7 bước 2: đổi chiều lọc theo độ chọn lọc.
+    allow-list-ratio-threshold: 0.5
+    iterative-scan: true           # cứu độ phủ khi phạm vi quyền hẹp
+    # Đặt BẰNG allow-list-ratio-threshold, không thấp hơn. Thấp hơn là tạo một dải phạm vi
+    # quyền vừa không được quét lặp vừa không được lợi thế danh sách cho-phép — mất độ phủ
+    # mà không dấu hiệu nào báo. Bản trước để 0.25 cứng trong mã bên cạnh 0.5 ở đây.
+    narrow-scope-ratio: 0.5
+    # Trần quét lặp. NHỎ HƠN số đoạn của tập đang hoạt động thì quét có thể dừng giữa chừng;
+    # hệ thống cảnh báo khi rơi vào tình huống đó. Nâng lên là đổi độ trễ lấy độ phủ.
+    max-scan-tuples: 60000
+    min-score: 0.0
+
+  context:
+    # NFR-system-047. Mọi ngưỡng độ trễ ở NFR mục 1 treo trên con số này —
+    # đo với ngữ cảnh ngắn hơn giá trị này là đo sai điều kiện (NFR Mục 0).
+    max-tokens: 3072
+    max-chunks-per-document: 3
+
+  agent:
+    max-subqueries: 4
+    history-turns: 6
+    summarize-after-turns: 10
+    # Ngưỡng từ chối tầng một: dưới mức này coi như không đủ căn cứ.
+    refusal:
+      min-top-score: 0.35
+      min-supporting-chunks: 1
+    grounding:
+      enabled: true                # tầng chặn thứ hai (NFR-system-045 bật tắt được)
+      min-sentence-support: 0.30
+
+  ingestion:
+    # Kích thước bể luồng của khâu nạp — NFR-system-047 gọi đích danh.
+    thread-pool-size: 2
+    queue-capacity: 500
+    # Bắt xác nhận metadata trước khi tài liệu vào chỉ mục. Tắt mặc định — xem ghi chú ở
+    # TracuuProperties.Ingestion: gate thật nằm ở tầng quyền, không ở bước này.
+    require-metadata-confirmation: false
+    overlap:
+      enabled: true
+      similarity-threshold: 0.85
+    cluster:
+      similarity-threshold: 0.75
+
+  qa:
+    # NFR-system-008: quá 5 câu đang xử lý thì xếp hàng và BÁO vị trí.
+    max-concurrent-questions: 5
+    queue-capacity: 50
+    queue-timeout: 5m
+
+  gap:
+    retention-months: 12           # vòng đời dữ liệu, mô hình dữ liệu Mục 10
+    cluster-similarity-threshold: 0.80
+    min-cluster-size: 3
+
+  audit:
+    retention-months: 12           # NFR-system-029

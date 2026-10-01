@@ -1,0 +1,239 @@
+# Từ điển từ ghép tiếng Việt cho khâu tách từ (khớp dài nhất).
+# Mỗi dòng một từ ghép, viết thường, các âm tiết cách nhau bằng khoảng trắng.
+# Dòng bắt đầu bằng # là chú thích. Từ một âm tiết bị bỏ qua (không cần khai).
+#
+# Đây là bộ HẠT GIỐNG nghiêng về nghiệp vụ hành chính, nhân sự và pháp quy — đúng
+# loại tài liệu kho này chứa. Bổ sung thêm từ của ngành cụ thể sẽ cải thiện nhánh
+# tìm theo từ khoá; đo tác động bằng cách chạy bộ đo hai lượt, đổi mỗi chiến lược tách từ.
+
+# ── Hành chính, văn bản ──────────────────────────────────────────────
+văn bản
+văn bản pháp quy
+quy định
+quy chế
+quy trình
+quy tắc
+nội quy
+điều lệ
+thông tư
+nghị định
+nghị quyết
+quyết định
+chỉ thị
+hướng dẫn
+công văn
+tờ trình
+biên bản
+báo cáo
+kế hoạch
+đề án
+phụ lục
+biểu mẫu
+hồ sơ
+tài liệu
+hiệu lực
+thi hành
+ban hành
+sửa đổi
+bổ sung
+thay thế
+bãi bỏ
+căn cứ
+phạm vi
+đối tượng
+áp dụng
+thực hiện
+trách nhiệm
+nghĩa vụ
+quyền hạn
+thẩm quyền
+phê duyệt
+xác nhận
+chứng thực
+công bố
+lưu trữ
+bảo mật
+mật độ
+tuyệt mật
+tối mật
+
+# ── Tổ chức, nhân sự ─────────────────────────────────────────────────
+công ty
+doanh nghiệp
+tổ chức
+cơ quan
+đơn vị
+phòng ban
+bộ phận
+ban giám đốc
+giám đốc
+phó giám đốc
+trưởng phòng
+phó phòng
+nhân viên
+người lao động
+người sử dụng lao động
+cán bộ
+công chức
+viên chức
+nhân sự
+tuyển dụng
+đào tạo
+bồi dưỡng
+thử việc
+hợp đồng
+hợp đồng lao động
+chấm dứt
+nghỉ việc
+thôi việc
+điều động
+luân chuyển
+bổ nhiệm
+miễn nhiệm
+kỷ luật
+khen thưởng
+đánh giá
+xếp loại
+chức danh
+chức vụ
+vị trí
+việc làm
+
+# ── Lương, phúc lợi ──────────────────────────────────────────────────
+tiền lương
+mức lương
+lương cơ bản
+lương tối thiểu
+phụ cấp
+trợ cấp
+thưởng
+tiền thưởng
+thu nhập
+khấu trừ
+bảo hiểm
+bảo hiểm xã hội
+bảo hiểm y tế
+bảo hiểm thất nghiệp
+công đoàn
+phúc lợi
+chế độ
+thai sản
+ốm đau
+tai nạn lao động
+bệnh nghề nghiệp
+hưu trí
+tử tuất
+nghỉ phép
+nghỉ lễ
+nghỉ tết
+ngày công
+giờ làm việc
+làm thêm giờ
+tăng ca
+ca đêm
+
+# ── Tài chính, kế toán ───────────────────────────────────────────────
+kế toán
+tài chính
+ngân sách
+chi phí
+doanh thu
+lợi nhuận
+thanh toán
+tạm ứng
+quyết toán
+hoá đơn
+chứng từ
+sổ sách
+kiểm toán
+thuế
+thuế thu nhập
+thuế giá trị gia tăng
+tài sản
+công nợ
+định mức
+dự toán
+đầu tư
+mua sắm
+đấu thầu
+nhà cung cấp
+hợp đồng kinh tế
+
+# ── Công nghệ thông tin ──────────────────────────────────────────────
+hệ thống
+phần mềm
+phần cứng
+cơ sở dữ liệu
+máy chủ
+mạng nội bộ
+tài khoản
+mật khẩu
+đăng nhập
+đăng xuất
+phân quyền
+quyền truy cập
+sao lưu
+phục hồi
+an toàn thông tin
+sự cố
+vận hành
+bảo trì
+nâng cấp
+triển khai
+người dùng
+quản trị
+quản trị viên
+giao diện
+chức năng
+dữ liệu
+thông tin
+tìm kiếm
+tra cứu
+trích dẫn
+tài liệu nội bộ
+
+# ── Động từ, cụm thường gặp ──────────────────────────────────────────
+thực hiện
+tiến hành
+tổ chức thực hiện
+kiểm tra
+giám sát
+theo dõi
+xử lý
+giải quyết
+đề xuất
+kiến nghị
+yêu cầu
+đề nghị
+thông báo
+gửi kèm
+đính kèm
+liên hệ
+phối hợp
+chịu trách nhiệm
+có trách nhiệm
+được phép
+không được
+bắt buộc
+tối đa
+tối thiểu
+ít nhất
+chậm nhất
+trong vòng
+kể từ ngày
+có hiệu lực
+hết hiệu lực
+trường hợp
+ngoại lệ
+nếu có
+tương ứng
+liên quan
+bao gồm
+cụ thể
+chi tiết
+tổng hợp
+định kỳ
+đột xuất
+hàng tháng
+hàng quý
+hàng năm

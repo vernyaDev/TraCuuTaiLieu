@@ -1,0 +1,38 @@
+# Bản ghi đè: dùng Ollama ĐÃ CÀI TRÊN MÁY thay vì chạy thêm một bản trong ảnh.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.host-llm.yml up -d --build
+#
+# Vì sao có tệp này. Bản triển khai chuẩn ở docker-compose.yml chạy đủ bốn dịch vụ và tự chứa —
+# đó là hình dạng đúng cho nơi cài thật. Nhưng trên máy phát triển, ảnh ollama cộng mô hình là
+# thêm vài gigabyte tải về và một bản sao mô hình thứ hai trên đĩa, trong khi máy đã có sẵn một
+# bản chạy được. Tệp này chỉ đổi ĐỊA CHỈ mà `app` gọi tới, không đổi gì khác.
+#
+# Điều kiện dùng: máy chủ mô hình trên máy phải lắng nghe ở 0.0.0.0 chứ không chỉ 127.0.0.1,
+# nếu không tiến trình trong ảnh không tới được. Đặt biến OLLAMA_HOST=0.0.0.0:11434 trước khi
+# khởi động nó.
+#
+# LƯU Ý về phép kiểm khởi động số 4: mô hình chạy trên GPU của MÁY, không phải GPU cấp cho ảnh.
+# Phép kiểm vẫn đúng vì nó hỏi máy chủ mô hình chứ không hỏi ảnh, nhưng khi đọc kết quả đo thì
+# nhớ rằng điều kiện phần cứng ở đây là của máy phát triển.
+
+services:
+
+  # Dừng hẳn dịch vụ mô hình trong ảnh. Dùng profile thay vì xoá để `docker compose` không
+  # báo thiếu dịch vụ mà các dịch vụ khác đang phụ thuộc.
+  llm:
+    profiles: ["khong-dung"]
+
+  app:
+    # Thẻ !override là BẮT BUỘC. Không có nó, Compose GỘP hai khối depends_on thay vì thay
+    # thế, nên phụ thuộc vào dịch vụ llm đã tắt vẫn còn và cả dự án thành không hợp lệ:
+    # "service app depends on undefined service llm".
+    depends_on: !override
+      db:    { condition: service_healthy }
+      cache: { condition: service_healthy }
+    environment:
+      # host.docker.internal trỏ về máy chủ vật lý từ bên trong ảnh.
+      TRACUU_LLM_BASEURL: http://host.docker.internal:11434
+    extra_hosts:
+      # Cần khai tường minh trên Linux; trên Windows và macOS thì Docker Desktop đã có sẵn,
+      # khai thêm cũng vô hại.
+      - "host.docker.internal:host-gateway"

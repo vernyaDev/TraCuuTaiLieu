@@ -1,0 +1,41 @@
+# dựng
+target/
+build/
+dist/
+node_modules/
+*.class
+
+# hạ tầng cục bộ của máy dựng, không thuộc sản phẩm
+.env
+
+# mô hình tải về, nặng, không đưa vào kho mã
+models/
+var/
+
+# công cụ
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# thiet lap maven rieng cua may dung (co proxy noi bo)
+app/.mvn/settings-local.xml
+
+# giao diện đã dựng: Vite sinh ra từ web/, ảnh Docker tự dựng lại
+app/src/main/resources/static/
+*.tsbuildinfo
+
+# bộ khung BA dùng để soạn hồ sơ: công cụ làm việc, có giấy phép riêng, không thuộc sản phẩm
+.claude/
+_templates/
+_scripts/
+legacy/
+wiki/
+.project-config.yml
+CLAUDE.md
+BA-HANDBOOK.md
+HARNESS.md
+SKILLS.md
+PILOT.md
+CREDITS.md
+README-BA-HARNESS.md
